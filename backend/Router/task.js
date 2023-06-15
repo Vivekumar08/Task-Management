@@ -6,18 +6,21 @@ const user = require("../models/user");
 
 TaskRouter.get("/", async (req, res) => {
     try {
-        const { userId } = req.body;
+        const userId = req.query.id;
+        if (!userId) return res.status(400).json("Give user Id")
         const existingUser = await user.findOne({ userId: userId })
         const tasks = await task.find({ uuserId: existingUser._id })
         if (tasks) return res.status(200).json(tasks)
+        res.status(401).json("No task are here")
 
     } catch (error) {
-        res.status(500).json("Internal server err!!!", err)
+        res.status(500).json({ msg: "Internal server err!!!" })
     }
 })
 TaskRouter.post("/", async (req, res) => {
     try {
-        const { userId, title, description } = req.body;
+        const userId = req.query.id;
+        const { title, description } = req.body;
         if (!title, !description) return res.status(401).json({ msg: "Fill the data properly!!!" })
         const existingUser = await user.findOne({ userId: userId })
         if (existingUser) {
@@ -31,7 +34,7 @@ TaskRouter.post("/", async (req, res) => {
         } else return res.status(401).json("User not found !!")
 
     } catch (error) {
-        res.status(500).json("Internal server err!!!", err)
+        res.status(500).json({ msg: "Internal server err!!!" })
     }
 })
 
@@ -59,9 +62,8 @@ TaskRouter.put("/status", async (req, res) => {
 TaskRouter.put("/", async (req, res) => {
     try {
         const id = req.query.id
-        const { title, description } = req.body;
+        const { title, description, userId } = req.body;
         if (!title, !description) return res.status(401).json({ msg: "Fill the task data properly!!!" })
-        const { userId } = req.body;
         const existingUser = await user.findOne({ userId: userId })
         if (existingUser) {
             const existitngTask = await task.findOneAndUpdate({ _id: id, uuserId: existingUser._id }, {
